@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TemplateForge — Automated Template Factory</title>
+<style>
+:root {
+  --bg: #07070d; --card: #12121e; --border: #1e1e32;
+  --text: #e8e8f0; --text-dim: #8888a8; --text-muted: #55557a;
+  --accent: #7c6cf0; --accent-dim: #5a4fd4; --green: #34d399;
+  --radius: 12px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,sans-serif; min-height:100vh; }
+.nav { display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-bottom:1px solid var(--border); }
+.nav-logo { font-weight:700; font-size:18px; color:var(--accent); text-decoration:none; }
+.container { max-width:1100px; margin:0 auto; padding:0 24px; }
+
+.hero { text-align:center; padding:80px 20px 60px; }
+.hero h1 { font-size:48px; font-weight:800; background:linear-gradient(135deg,var(--text) 0%,var(--accent) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.hero p { color:var(--text-dim); font-size:18px; max-width:500px; margin:12px auto 0; }
+
+.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px; }
+.stat { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; text-align:center; }
+.stat-val { font-size:28px; font-weight:700; }
+.stat-lbl { font-size:12px; color:var(--text-muted); margin-top:4px; }
+
+.types { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px; margin:40px 0; }
+.type-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; text-align:center; transition:all 0.2s; cursor:pointer; }
+.type-card:hover { border-color:var(--accent); }
+.type-icon { font-size:40px; margin-bottom:12px; }
+.type-card h3 { font-size:18px; margin-bottom:4px; }
+.type-card p { color:var(--text-dim); font-size:13px; }
+.type-price { margin-top:12px; font-weight:700; color:var(--green); font-size:20px; }
+
+.designs { margin:40px 0; }
+.designs h2 { margin-bottom:16px; }
+.design-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:12px; }
+.design-chip { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:10px; font-size:13px; text-align:center; cursor:pointer; transition:all 0.2s; }
+.design-chip:hover,.design-chip.active { border-color:var(--accent); color:var(--accent); }
+.design-swatch { display:flex; gap:4px; justify-content:center; margin-bottom:6px; }
+.design-swatch span { width:16px; height:16px; border-radius:50%; }
+
+.actions { text-align:center; margin:40px 0; }
+.btn { padding:12px 28px; border-radius:8px; border:none; font-weight:600; cursor:pointer; font-size:15px; font-family:inherit; transition:all 0.2s; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-primary:hover { background:var(--accent-dim); }
+.btn-secondary { background:var(--card); border:1px solid var(--border); color:var(--text); margin-left:12px; }
+.btn-green { background:var(--green); color:#000; }
+
+.results { margin-top:24px; }
+.result-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:12px 16px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; font-size:14px; }
+.result-card a { color:var(--accent); text-decoration:none; font-size:13px; }
+</style>
+</head>
+<body>
+<div class="nav container"><a href="/" class="nav-logo">🏭 TemplateForge</a><a href="/dashboard" style="color:var(--text-dim);text-decoration:none;font-size:14px;">Dashboard</a></div>
+
+<div class="hero">
+  <h1>Template Factory 24/7</h1>
+  <p>Génération automatique de templates CV, Notion, landing pages et slides. Prêts à vendre.</p>
+</div>
+
+<div class="container">
+  <div class="stats" id="stats">
+    <div class="stat"><div class="stat-val" style="color:var(--accent);">32</div><div class="stat-lbl">Templates disponibles</div></div>
+    <div class="stat"><div class="stat-val" style="color:var(--green);">4</div><div class="stat-lbl">Catégories</div></div>
+    <div class="stat"><div class="stat-val">8</div><div class="stat-lbl">Design systems</div></div>
+    <div class="stat"><div class="stat-val" style="color:var(--accent);">Instantané</div><div class="stat-lbl">Génération</div></div>
+  </div>
+
+  <div class="types" id="types"></div>
+
+  <div class="designs"><h2>Design Systems</h2>
+    <div class="design-grid" id="designs"></div>
+  </div>
+
+  <div style="text-align:center;margin:16px 0;">
+    <label style="color:var(--text-dim);font-size:14px;">Quantité: </label>
+    <select id="count" style="padding:8px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-family:inherit;">
+      <option value="1">1 template</option><option value="4">4 (1 par catégorie)</option>
+      <option value="8">8 (tous les designs)</option>
+      <option value="32">32 (toutes les combinaisons)</option>
+    </select>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" onclick="generate()">🎲 Générer Templates</button>
+    <button class="btn btn-green" onclick="generateAll()">🚀 Générer TOUT (32 templates)</button>
+  </div>
+
+  <div class="results" id="results"></div>
+</div>
+
+<script>
+const types = {{ types | tojson }};
+const designs = {{ designs | tojson }};
+let selectedDesign = 0;
+
+document.getElementById('types').innerHTML = Object.entries(types).map(([k,v]) => `
+  <div class="type-card"><div class="type-icon">${k==='cv'?'📄':k==='landing'?'🌐':k==='notion'?'📋':'📊'}</div>
+    <h3>${v.name}</h3><p>${v.ext.toUpperCase()} · ${k}</p>
+    <div class="type-price">$${v.price}</div></div>
+`).join('');
+
+document.getElementById('designs').innerHTML = designs.map((d,i) => `
+  <div class="design-chip ${i===0?'active':''}" onclick="selectDesign(${i},this)">
+    <div class="design-swatch">${d.colors.map(c => `<span style="background:${c}"></span>`).join('')}</div>
+    ${d.name}
+  </div>
+`).join('');
+
+function selectDesign(idx, el) {
+  selectedDesign = idx;
+  document.querySelectorAll('.design-chip').forEach(d => d.classList.remove('active'));
+  el.classList.add('active');
+}
+
+async function generate() {
+  const category = prompt("Catégorie (cv, landing, notion, slides) — laisser vide = aléatoire");
+  const count = document.getElementById('count').value;
+  const r = await fetch('/generate', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({category: category || 'cv', design: selectedDesign, count: parseInt(count)})
+  });
+  const data = await r.json();
+  showResults(data.templates);
+}
+
+async function generateAll() {
+  const r = await fetch('/generate-all', {method:'POST'});
+  const data = await r.json();
+  showResults(data.templates);
+}
+
+function showResults(templates) {
+  document.getElementById('results').innerHTML = '<h3 style="margin-bottom:12px;">✅ ' + templates.length + ' templates générés</h3>' +
+    templates.map(t => `
+      <div class="result-card">
+        <span><strong>${t.category || t.type}</strong> · ${t.id}</span>
+        <div>
+          <a href="/preview/${t.id}" target="_blank">Preview</a> ·
+          <a href="/download/${t.id}">Download</a>
+        </div>
+      </div>`).join('');
+}
+</script>
+</body>
+</html>
