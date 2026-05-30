@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>TemplateForge — Dashboard</title>
+<style>
+:root {
+  --bg: #07070d; --card: #12121e; --border: #1e1e32;
+  --text: #e8e8f0; --text-dim: #8888a8; --text-muted: #55557a;
+  --accent: #7c6cf0; --green: #34d399; --orange: #f59e0b; --radius: 12px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,sans-serif; }
+.nav { display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-bottom:1px solid var(--border); }
+.nav a { color:var(--text-dim); text-decoration:none; font-size:14px; }
+.container { max-width:1200px; margin:0 auto; padding:24px; }
+
+.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:32px; }
+.stat { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; text-align:center; }
+.stat-val { font-size:28px; font-weight:700; }
+.stat-lbl { font-size:12px; color:var(--text-muted); margin-top:4px; }
+
+.actions { margin-bottom:24px; display:flex; gap:8px; }
+.btn { padding:10px 20px; border-radius:8px; border:none; font-weight:600; cursor:pointer; font-size:14px; font-family:inherit; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-green { background:var(--green); color:#000; }
+.btn-outline { background:var(--card); border:1px solid var(--border); color:var(--text); }
+
+.gumroad-section { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:20px; margin-bottom:24px; }
+.gumroad-section h3 { margin-bottom:8px; }
+.gumroad-input { padding:8px 12px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text); width:300px; font-family:inherit; }
+
+.table { width:100%; border-collapse:collapse; }
+.table th,.table td { padding:12px; text-align:left; font-size:14px; border-bottom:1px solid var(--border); }
+.table th { color:var(--text-muted); font-weight:500; font-size:12px; text-transform:uppercase; }
+.table tr:hover { background:var(--card); }
+.badge { padding:3px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+.badge-published { background:rgba(52,211,153,0.1); color:var(--green); }
+.badge-draft { background:rgba(136,136,168,0.1); color:var(--text-dim); }
+
+.progress { margin-top:16px; padding:10px; background:var(--card); border-radius:8px; font-size:13px; color:var(--text-dim); display:none; }
+</style>
+</head>
+<body>
+<div class="nav">
+  <span style="font-weight:700;color:var(--accent);">🏭 TemplateForge</span>
+  <a href="/">← Accueil</a>
+</div>
+<div class="container">
+  <div class="stats">
+    <div class="stat"><div class="stat-val" style="color:var(--accent);">{{ stats.total or 0 }}</div><div class="stat-lbl">Templates</div></div>
+    <div class="stat"><div class="stat-val" style="color:var(--green);">{{ stats.total_sales or 0 }}</div><div class="stat-lbl">Ventes</div></div>
+    <div class="stat"><div class="stat-val">${{ "%.0f"|format(stats.total_revenue or 0) }}</div><div class="stat-lbl">Revenu</div></div>
+    <div class="stat"><div class="stat-val">{{ stats.on_gumroad or 0 }}</div><div class="stat-lbl">Sur Gumroad</div></div>
+  </div>
+
+  <div class="gumroad-section">
+    <h3>📦 Upload sur Gumroad</h3>
+    <p style="color:var(--text-dim);font-size:13px;margin-bottom:8px;">Token Gumroad (Settings > Advanced > Generate access token)</p>
+    <input type="text" id="gumroad-token" class="gumroad-input" placeholder="access_token_...">
+    <button class="btn btn-green" onclick="uploadAll()" style="margin-left:8px;">Uploader tous les templates</button>
+    <div class="progress" id="gumroad-progress"></div>
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-primary" onclick="generateAll()">🎲 Générer 32 templates</button>
+    <button class="btn btn-outline" onclick="location.reload()">🔄 Refresh</button>
+  </div>
+
+  <table class="table">
+    <thead><tr><th>Nom</th><th>Catégorie</th><th>Design</th><th>Prix</th><th>Ventes</th><th>Gumroad</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for tpl in templates %}
+    <tr>
+      <td>{{ tpl.name }}</td>
+      <td><span class="badge badge-published">{{ tpl.category }}</span></td>
+      <td style="color:var(--text-dim);">{{ tpl.subcategory }}</td>
+      <td>${{ "%.2f"|format(tpl.price) }}</td>
+      <td>{{ tpl.sales or 0 }}</td>
+      <td>{% if tpl.gumroad_url %}<a href="{{ tpl.gumroad_url }}" target="_blank" style="color:var(--accent);">Lien</a>{% else %}—{% endif %}</td>
+      <td>
+        <a href="/preview/{{ tpl.id }}" target="_blank" style="color:var(--accent);font-size:12px;">Preview</a>
+        <a href="/download/{{ tpl.id }}" style="color:var(--green);font-size:12px;margin-left:8px;">Download</a>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% if not templates %}
+  <p style="text-align:center;color:var(--text-muted);padding:60px;">Aucun template. Cliquez "Générer 32 templates".</p>
+  {% endif %}
+</div>
+
+<script>
+async function generateAll() {
+  const r = await fetch('/generate-all', {method:'POST'});
+  const data = await r.json();
+  location.reload();
+}
+
+async function uploadAll() {
+  const token = document.getElementById('gumroad-token').value.trim();
+  if (!token) return alert('Token Gumroad requis');
+  const progress = document.getElementById('gumroad-progress');
+  progress.style.display = 'block';
+  progress.textContent = 'Upload en cours...';
+  const r = await fetch('/api/gumroad/batch', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({gumroad_token: token})
+  });
+  const data = await r.json();
+  progress.textContent = 'Upload terminé : ' + data.uploaded + ' templates. Rafraîchis la page.';
+  setTimeout(() => location.reload(), 2000);
+}
+</script>
+</body>
+</html>
