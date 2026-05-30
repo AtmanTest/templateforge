@@ -1,0 +1,4 @@
+generated/
+templates.db
+__pycache__/
+*.pyc
